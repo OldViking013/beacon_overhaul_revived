@@ -20,7 +20,8 @@
 		]
 	},
 	"mixins": [
-		"beacon-overhaul-revived.mixins.json"
+      "mixins/beacon-overhaul-revived/beacon-overhaul-revived.client.mixins.json",
+      "mixins/beacon-overhaul-revived/beacon-overhaul-revived.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.18.4",

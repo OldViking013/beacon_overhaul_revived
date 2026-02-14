@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "com.oldviking.beacon_overhaul_revived.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "AbstractWidgetAccessor",
+    "PowerButtonMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1,
+    "maxShiftBy": 5
+  },
+  "overwrites": {
+    "requireAnnotations": true
+	}
+}

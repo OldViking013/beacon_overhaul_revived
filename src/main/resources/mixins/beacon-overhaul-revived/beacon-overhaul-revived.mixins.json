@@ -4,10 +4,13 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BeaconBlockEntityAccessor",
-    "BeaconBlockEntityMixin"
+    "BeaconBlockEntityInvoker",
+    "BeaconBlockEntityMixin",
+    "BeaconMenuMixin"
   ],
   "injectors": {
-    "defaultRequire": 1
+    "defaultRequire": 1,
+    "maxShiftBy": 2
   },
   "overwrites": {
     "requireAnnotations": true
