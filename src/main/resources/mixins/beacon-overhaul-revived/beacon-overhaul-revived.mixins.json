@@ -6,6 +6,7 @@
     "BeaconBlockEntityAccessor",
     "BeaconBlockEntityInvoker",
     "BeaconBlockEntityMixin",
+    "BeaconBlockEntityMixin$BeaconBlockEntity_DataAccessMixin",
     "BeaconMenuMixin",
     "LivingEntityMixin"
   ],
