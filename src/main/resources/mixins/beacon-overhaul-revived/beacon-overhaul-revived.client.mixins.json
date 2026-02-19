@@ -4,6 +4,9 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "AbstractWidgetAccessor",
+    "FogRendererMixin",
+    "GameRendererMixin",
+    "LightTextureMixin",
     "PowerButtonMixin"
   ],
   "injectors": {

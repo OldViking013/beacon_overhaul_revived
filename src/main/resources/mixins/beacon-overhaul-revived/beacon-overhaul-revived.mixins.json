@@ -6,7 +6,8 @@
     "BeaconBlockEntityAccessor",
     "BeaconBlockEntityInvoker",
     "BeaconBlockEntityMixin",
-    "BeaconMenuMixin"
+    "BeaconMenuMixin",
+    "LivingEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1,
