@@ -17,8 +17,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -29,10 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Mixin(BeaconBlockEntity.class)
 abstract class BeaconBlockEntityMixin extends BlockEntity implements MenuProvider, MutableTieredBeacon {
@@ -66,7 +61,7 @@ abstract class BeaconBlockEntityMixin extends BlockEntity implements MenuProvide
             at = @At(
                     target = "Lnet/minecraft/world/level/block/entity/BeaconBlockEntity;"
                             + "updateBase(Lnet/minecraft/world/level/Level;III)I",
-                    shift = At.Shift.BY, by = 2, value = "INVOKE", opcode = Opcodes.INVOKESTATIC),
+                    shift = At.Shift.BY, by = 2, value = "INVOKE"),
             locals = LocalCapture.CAPTURE_FAILHARD, require = 1, allow = 1)
     private static void updateTier(
             Level level, BlockPos pos, BlockState state, BeaconBlockEntity beaconBlock,
@@ -116,7 +111,7 @@ abstract class BeaconBlockEntityMixin extends BlockEntity implements MenuProvide
             method =
                     "applyEffects(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;I" +
                             "Lnet/minecraft/core/Holder;Lnet/minecraft/core/Holder;)V",
-            at = @At(value = "STORE", opcode = Opcodes.DSTORE, ordinal = 0),
+            at = @At(value = "STORE", ordinal = 0),
             index = 5, require = 1, allow = 1)
     private static double modifyEffectRadius(double radius, Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof TieredBeacon beaconBlock) {
@@ -129,7 +124,7 @@ abstract class BeaconBlockEntityMixin extends BlockEntity implements MenuProvide
             method =
                     "applyEffects(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;I" +
                             "Lnet/minecraft/core/Holder;Lnet/minecraft/core/Holder;)V",
-            at = @At(value = "STORE", opcode = Opcodes.ISTORE, ordinal = 0),
+            at = @At(value = "STORE", ordinal = 0),
             index = 7, require = 1, allow = 1)
     private static int modifyPrimaryAmplifier(
             int primaryAmplifier, Level level, BlockPos pos, int levels,
@@ -146,7 +141,7 @@ abstract class BeaconBlockEntityMixin extends BlockEntity implements MenuProvide
             method =
                     "applyEffects(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;I" +
                             "Lnet/minecraft/core/Holder;Lnet/minecraft/core/Holder;)V",
-            at = @At(value = "STORE", opcode = Opcodes.ISTORE, ordinal = 1),
+            at = @At(value = "STORE", ordinal = 1),
             index = 7, require = 1, allow = 1)
     private static int modifyPotentPrimaryAmplifier(
             int primaryAmplifier, Level level, BlockPos pos, int levels,
@@ -165,7 +160,7 @@ abstract class BeaconBlockEntityMixin extends BlockEntity implements MenuProvide
             method =
                     "applyEffects(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;I" +
                             "Lnet/minecraft/core/Holder;Lnet/minecraft/core/Holder;)V",
-            at = @At(value = "STORE", opcode = Opcodes.ISTORE, ordinal = 0),
+            at = @At(value = "STORE", ordinal = 0),
             index = 8, require = 1, allow = 1)
     private static int modifyDuration(int duration, Level level, BlockPos pos, int levels) {
         if(level.getBlockEntity(pos) instanceof TieredBeacon beaconBlock) {
@@ -192,59 +187,41 @@ abstract class BeaconBlockEntityMixin extends BlockEntity implements MenuProvide
         return secondaryAmplifier;
     }
 
+    @Mixin(targets = "net.minecraft.world.level.block.entity.BeaconBlockEntity$1")
+    abstract static class BeaconBlockEntity_DataAccessMixin implements ContainerData {
 
-//TODO Make this better Fck AI
-    @Shadow
-    @Nullable
-    private Holder<MobEffect> primaryPower;
+        @Unique
+        private BeaconBlockEntity beacon;
 
-    @Shadow
-    @Nullable
-    private Holder<MobEffect> secondaryPower;
+        @Inject(method = "<init>", at = @At("TAIL"))
+        private void captureOuter(BeaconBlockEntity outer, CallbackInfo ci) {
+            this.beacon = outer;
+        }
 
-    @Shadow
-    @Final
-    private ContainerData dataAccess;
+        @Inject(method = "get", at = @At("HEAD"), cancellable = true)
+        private void tryGetTier(int index, CallbackInfoReturnable<Integer> cir) {
+            if (index == 3) {
+                cir.setReturnValue(
+                        ((TieredBeacon)this.beacon).getTier().ordinal()
+                );
+            }
+        }
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void replaceDataAccess(BlockPos pos, BlockState state, CallbackInfo ci) {
-        try {
-            Field field = BeaconBlockEntity.class.getDeclaredField("dataAccess");
-            field.setAccessible(true);
+        @Inject(method = "set", at = @At("HEAD"), cancellable = true)
+        private void trySetTier(int index, int value, CallbackInfo ci) {
+            if (index == 3) {
+                ((MutableTieredBeacon)this.beacon)
+                        .setTier(PotencyTier.values()[value]);
+                ci.cancel();
+            }
+        }
 
-            field.set(this, new ContainerData() {
-
-                @Override
-                public int get(int index) {
-                    return switch (index) {
-                        case 0 -> levels;
-                        case 1 -> BeaconMenu.encodeEffect(primaryPower);
-                        case 2 -> BeaconMenu.encodeEffect(secondaryPower);
-                        case 3 -> BeaconBlockEntityMixin.this.getTier().ordinal();
-                        default -> 0;
-                    };
-                }
-
-                @Override
-                public void set(int index, int value) {
-                    switch (index) {
-                        case 0 -> levels = value;
-                        case 1 -> primaryPower = BeaconBlockEntityInvoker.filterEffect(BeaconMenu.decodeEffect(value));
-                        case 2 -> secondaryPower = BeaconBlockEntityInvoker.filterEffect(BeaconMenu.decodeEffect(value));
-                        case 3 -> BeaconBlockEntityMixin.this
-                                .setTier(PotencyTier.values()[value]);
-                    }
-                }
-
-                @Override
-                public int getCount() {
-                    return 3 + 1;
-                }
-            });
-
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("Failed to replace dataAccess", e);
+        @ModifyConstant(
+                method = "getCount",
+                constant = @Constant(intValue = 3)
+        )
+        private int expandDataCount(int original) {
+            return 4;
         }
     }
-
 }

@@ -16,11 +16,11 @@ public class BeaconPowerTooltips {
 
     private BeaconPowerTooltips(){}
 
-    public static final MutableComponent createTooltip(
+    public static MutableComponent createTooltip(
             BeaconScreen screen, Holder<MobEffect> effect, boolean upgrade) {
         final var component = Component.translatable(effect.value().getDescriptionId());
 
-        if ((effect != MobEffects.SLOW_FALLING) && (effect != MobEffects.FIRE_RESISTANCE)) {
+        if ((effect != MobEffects.SLOW_FALLING) && (effect != MobEffects.FIRE_RESISTANCE) && (effect != MobEffects.REGENERATION)) {
             var potency = upgrade ? 1 : 0;
 
             if (effect != MobEffects.NIGHT_VISION) {
