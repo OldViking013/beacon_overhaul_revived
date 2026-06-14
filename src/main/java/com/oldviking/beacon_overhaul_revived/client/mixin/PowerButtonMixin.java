@@ -19,8 +19,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Environment(EnvType.CLIENT)
 @Mixin(targets = "net.minecraft.client.gui.screens.inventory.BeaconScreen$BeaconPowerButton")
 abstract class PowerButtonMixin {
-    @Shadow @Final
-    BeaconScreen field_2811;
+    @Shadow(aliases = "this$0")
+    @Final
+    BeaconScreen outer;
 
     @Shadow
     private @NonNull Holder<MobEffect> effect;
@@ -34,7 +35,7 @@ abstract class PowerButtonMixin {
 
     @Unique
     private void setTieredTooltip(Holder<MobEffect> effect) {
-        ((AbstractWidgetAccessor) this).invokeSetTooltip(Tooltip.create(BeaconPowerTooltips.createTooltip(this.field_2811, effect, this.isUpgrade()), null));
+        ((AbstractWidgetAccessor) this).invokeSetTooltip(Tooltip.create(BeaconPowerTooltips.createTooltip(this.outer, effect, this.isUpgrade()), null));
     }
 
     @Inject(method = "setEffect(Lnet/minecraft/core/Holder;)V", at = @At("RETURN"), require = 1, allow = 1)
